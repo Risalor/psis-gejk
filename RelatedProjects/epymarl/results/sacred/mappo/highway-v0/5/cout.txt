@@ -1,0 +1,284 @@
+[INFO 23:01:07] pymarl Running command 'my_main'
+[INFO 23:01:07] pymarl Started run with ID "5"
+[DEBUG 23:01:07] pymarl Starting Heartbeat
+[DEBUG 23:01:07] my_main Started
+[WARNING 23:01:07] my_main CUDA flag use_cuda was switched OFF automatically because no CUDA devices are available!
+[INFO 23:01:07] my_main Experiment Parameters:
+[INFO 23:01:07] my_main 
+
+{   'action_selector': 'soft_policies',
+    'add_value_last_step': True,
+    'agent': 'rnn',
+    'agent_output_type': 'pi_logits',
+    'batch_size': 10,
+    'batch_size_run': 10,
+    'buffer_cpu_only': True,
+    'buffer_size': 10,
+    'checkpoint_path': '',
+    'common_reward': True,
+    'critic_type': 'cv_critic',
+    'entropy_coef': 0.001,
+    'env': 'gymma',
+    'env_args': {   'key': 'highway-v0',
+                    'pretrained_wrapper': None,
+                    'render_mode': None,
+                    'seed': 633566806,
+                    'time_limit': 40},
+    'epochs': 4,
+    'eps_clip': 0.2,
+    'evaluate': False,
+    'gamma': 0.99,
+    'grad_norm_clip': 10,
+    'hidden_dim': 128,
+    'hypergroup': None,
+    'label': 'default_label',
+    'learner': 'ppo_learner',
+    'learner_log_interval': 10000,
+    'load_step': 0,
+    'local_results_path': 'results',
+    'log_interval': 50000,
+    'lr': 0.0003,
+    'mac': 'basic_mac',
+    'mask_before_softmax': True,
+    'name': 'mappo',
+    'obs_agent_id': True,
+    'obs_individual_obs': False,
+    'obs_last_action': False,
+    'optim_alpha': 0.99,
+    'optim_eps': 1e-05,
+    'q_nstep': 5,
+    'render': True,
+    'repeat_id': 1,
+    'reward_scalarisation': 'sum',
+    'runner': 'parallel',
+    'runner_log_interval': 10000,
+    'save_model': False,
+    'save_model_interval': 50000,
+    'save_replay': False,
+    'seed': 633566806,
+    'standardise_returns': False,
+    'standardise_rewards': True,
+    't_max': 30000,
+    'target_update_interval_or_tau': 0.01,
+    'test_greedy': True,
+    'test_interval': 1000,
+    'test_nepisode': 10,
+    'use_cuda': False,
+    'use_rnn': True,
+    'use_tensorboard': False,
+    'use_wandb': False,
+    'wandb_mode': 'offline',
+    'wandb_project': None,
+    'wandb_save_model': False,
+    'wandb_team': None}
+
+Process Process-1:
+Traceback (most recent call last):
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/runners/parallel_runner.py", line 290, in env_worker
+    env = env_fn.x()
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/__init__.py", line 33, in gymma_fn
+    return GymmaWrapper(**kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/gymma.py", line 39, in __init__
+    self._env = gym.make(f"{key}", **kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 681, in make
+    env_spec = _find_spec(id)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 526, in _find_spec
+    _check_version_exists(ns, name, version)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 392, in _check_version_exists
+    _check_name_exists(ns, name)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 369, in _check_name_exists
+    raise error.NameNotFound(
+gymnasium.error.NameNotFound: Environment `highway` doesn't exist.
+Process Process-2:
+Traceback (most recent call last):
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/runners/parallel_runner.py", line 290, in env_worker
+    env = env_fn.x()
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/__init__.py", line 33, in gymma_fn
+    return GymmaWrapper(**kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/gymma.py", line 39, in __init__
+    self._env = gym.make(f"{key}", **kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 681, in make
+    env_spec = _find_spec(id)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 526, in _find_spec
+    _check_version_exists(ns, name, version)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 392, in _check_version_exists
+    _check_name_exists(ns, name)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 369, in _check_name_exists
+    raise error.NameNotFound(
+gymnasium.error.NameNotFound: Environment `highway` doesn't exist.
+Process Process-3:
+Traceback (most recent call last):
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/runners/parallel_runner.py", line 290, in env_worker
+    env = env_fn.x()
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/__init__.py", line 33, in gymma_fn
+    return GymmaWrapper(**kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/gymma.py", line 39, in __init__
+    self._env = gym.make(f"{key}", **kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 681, in make
+    env_spec = _find_spec(id)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 526, in _find_spec
+    _check_version_exists(ns, name, version)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 392, in _check_version_exists
+    _check_name_exists(ns, name)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 369, in _check_name_exists
+    raise error.NameNotFound(
+gymnasium.error.NameNotFound: Environment `highway` doesn't exist.
+Process Process-4:
+Traceback (most recent call last):
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/runners/parallel_runner.py", line 290, in env_worker
+    env = env_fn.x()
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/__init__.py", line 33, in gymma_fn
+    return GymmaWrapper(**kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/gymma.py", line 39, in __init__
+    self._env = gym.make(f"{key}", **kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 681, in make
+    env_spec = _find_spec(id)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 526, in _find_spec
+    _check_version_exists(ns, name, version)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 392, in _check_version_exists
+    _check_name_exists(ns, name)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 369, in _check_name_exists
+    raise error.NameNotFound(
+gymnasium.error.NameNotFound: Environment `highway` doesn't exist.
+Process Process-5:
+Traceback (most recent call last):
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/runners/parallel_runner.py", line 290, in env_worker
+    env = env_fn.x()
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/__init__.py", line 33, in gymma_fn
+    return GymmaWrapper(**kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/gymma.py", line 39, in __init__
+    self._env = gym.make(f"{key}", **kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 681, in make
+    env_spec = _find_spec(id)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 526, in _find_spec
+    _check_version_exists(ns, name, version)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 392, in _check_version_exists
+    _check_name_exists(ns, name)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 369, in _check_name_exists
+    raise error.NameNotFound(
+gymnasium.error.NameNotFound: Environment `highway` doesn't exist.
+Process Process-6:
+Traceback (most recent call last):
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/runners/parallel_runner.py", line 290, in env_worker
+    env = env_fn.x()
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/__init__.py", line 33, in gymma_fn
+    return GymmaWrapper(**kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/gymma.py", line 39, in __init__
+    self._env = gym.make(f"{key}", **kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 681, in make
+    env_spec = _find_spec(id)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 526, in _find_spec
+    _check_version_exists(ns, name, version)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 392, in _check_version_exists
+    _check_name_exists(ns, name)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 369, in _check_name_exists
+    raise error.NameNotFound(
+gymnasium.error.NameNotFound: Environment `highway` doesn't exist.
+Process Process-7:
+Traceback (most recent call last):
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/runners/parallel_runner.py", line 290, in env_worker
+    env = env_fn.x()
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/__init__.py", line 33, in gymma_fn
+    return GymmaWrapper(**kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/gymma.py", line 39, in __init__
+    self._env = gym.make(f"{key}", **kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 681, in make
+    env_spec = _find_spec(id)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 526, in _find_spec
+    _check_version_exists(ns, name, version)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 392, in _check_version_exists
+    _check_name_exists(ns, name)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 369, in _check_name_exists
+    raise error.NameNotFound(
+gymnasium.error.NameNotFound: Environment `highway` doesn't exist.
+Process Process-8:
+Traceback (most recent call last):
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/runners/parallel_runner.py", line 290, in env_worker
+    env = env_fn.x()
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/__init__.py", line 33, in gymma_fn
+    return GymmaWrapper(**kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/gymma.py", line 39, in __init__
+    self._env = gym.make(f"{key}", **kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 681, in make
+    env_spec = _find_spec(id)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 526, in _find_spec
+    _check_version_exists(ns, name, version)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 392, in _check_version_exists
+    _check_name_exists(ns, name)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 369, in _check_name_exists
+    raise error.NameNotFound(
+gymnasium.error.NameNotFound: Environment `highway` doesn't exist.
+Process Process-9:
+Traceback (most recent call last):
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/runners/parallel_runner.py", line 290, in env_worker
+    env = env_fn.x()
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/__init__.py", line 33, in gymma_fn
+    return GymmaWrapper(**kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/gymma.py", line 39, in __init__
+    self._env = gym.make(f"{key}", **kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 681, in make
+    env_spec = _find_spec(id)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 526, in _find_spec
+    _check_version_exists(ns, name, version)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 392, in _check_version_exists
+    _check_name_exists(ns, name)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 369, in _check_name_exists
+    raise error.NameNotFound(
+gymnasium.error.NameNotFound: Environment `highway` doesn't exist.
+Process Process-10:
+Traceback (most recent call last):
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/home/thewanderer/.local/share/uv/python/cpython-3.10.19-linux-x86_64-gnu/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/runners/parallel_runner.py", line 290, in env_worker
+    env = env_fn.x()
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/__init__.py", line 33, in gymma_fn
+    return GymmaWrapper(**kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/src/envs/gymma.py", line 39, in __init__
+    self._env = gym.make(f"{key}", **kwargs)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 681, in make
+    env_spec = _find_spec(id)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 526, in _find_spec
+    _check_version_exists(ns, name, version)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 392, in _check_version_exists
+    _check_name_exists(ns, name)
+  File "/home/thewanderer/Projects/test/highway-env/epymarl/.venv/lib/python3.10/site-packages/gymnasium/envs/registration.py", line 369, in _check_name_exists
+    raise error.NameNotFound(
+gymnasium.error.NameNotFound: Environment `highway` doesn't exist.
