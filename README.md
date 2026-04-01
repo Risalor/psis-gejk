@@ -1,5 +1,5 @@
 # rl-agents
-
+Učenje avtonomnega agenta na osnovi predhodnjih iteracij v gostem prometu, projekt pri predmetu povezljivi sistemi in inteligentne storitve. 
 A collection of Reinforcement Learning agents
 
 [![build](https://github.com/eleurent/rl-agents/actions/workflows/build.yml/badge.svg)](https://github.com/eleurent/rl-agents/actions/workflows/build.yml)
