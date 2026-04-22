@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
-"""Plot episode reward trend from rl-agents evaluation logs.
+"""Plot reward trend from one or more run folders.
 
-This script reads lines such as:
+For each folder, this script finds the most recent logging*.log file, extracts
+episode scores from lines such as:
     [rl_agents.trainer.evaluation:INFO] Episode 42 score: 3.7
 
-and draws a reward curve across episodes, with optional moving average and
-linear trend line.
+Then it creates one image in the current working directory:
+1) trend.png
+    - Raw moving-average reward curves with per-run linear trends.
 """
 
 from __future__ import annotations
 
 import argparse
+import importlib
+import os
 import re
 from pathlib import Path
-
-import matplotlib.pyplot as plt
-import numpy as np
 
 
 EPISODE_SCORE_PATTERN = re.compile(
@@ -23,31 +24,45 @@ EPISODE_SCORE_PATTERN = re.compile(
 )
 
 
-def resolve_log_file(path: Path) -> Path:
-    """Resolve an input path into a single logging file path.
+def import_plot_dependencies(no_show: bool):
+    """Import plotting dependencies and configure headless backend when needed."""
+    try:
+        matplotlib = importlib.import_module("matplotlib")
+        if no_show and "MPLBACKEND" not in os.environ:
+            matplotlib.use("Agg")
+        plt = importlib.import_module("matplotlib.pyplot")
+        np = importlib.import_module("numpy")
+    except ModuleNotFoundError as exc:
+        package_name = getattr(exc, "name", "a required package")
+        raise ModuleNotFoundError(
+            f"Missing dependency: {package_name}. Install required packages with: "
+            "pip install numpy matplotlib"
+        ) from exc
 
-    If `path` is a directory, search for logging files and use the most recent one.
-    """
-    if path.is_file():
-        return path
+    return np, plt
 
-    if not path.exists():
-        raise FileNotFoundError(f"Input path does not exist: {path}")
 
-    direct_logs = list(path.glob("logging*.log"))
-    recursive_logs = list(path.rglob("logging*.log")) if not direct_logs else []
+def resolve_log_file(folder: Path) -> Path:
+    """Find the most recent logging file in a run folder."""
+    if not folder.exists():
+        raise FileNotFoundError(f"Input folder does not exist: {folder}")
+    if not folder.is_dir():
+        raise ValueError(f"Expected a folder path, got file: {folder}")
+
+    direct_logs = list(folder.glob("logging*.log"))
+    recursive_logs = list(folder.rglob("logging*.log")) if not direct_logs else []
     candidates = direct_logs or recursive_logs
     if not candidates:
         raise FileNotFoundError(
-            f"No logging file found under directory: {path}. "
+            f"No logging file found under folder: {folder}. "
             "Expected files like logging.<id>.<pid>.log"
         )
 
     return max(candidates, key=lambda p: p.stat().st_mtime)
 
 
-def parse_episode_rewards(log_file: Path) -> tuple[np.ndarray, np.ndarray]:
-    """Extract episode indices and total rewards from a logging file."""
+def parse_episode_rewards(log_file: Path, np):
+    """Extract episode indices and rewards from a logging file."""
     rewards_by_episode: dict[int, float] = {}
 
     with log_file.open("r", encoding="utf-8") as f:
@@ -70,68 +85,116 @@ def parse_episode_rewards(log_file: Path) -> tuple[np.ndarray, np.ndarray]:
     return episodes, rewards
 
 
-def moving_average(values: np.ndarray, window: int) -> np.ndarray:
-    """Compute a trailing moving average using a fixed-size window."""
-    if window <= 1:
-        return values.copy()
+def moving_average(episodes, rewards, window: int, np):
+    """Compute trailing moving average and aligned episode indices."""
+    if window <= 1 or len(rewards) < window:
+        return episodes, rewards.copy()
+
     kernel = np.ones(window, dtype=np.float64) / float(window)
-    return np.convolve(values, kernel, mode="valid")
+    avg_rewards = np.convolve(rewards, kernel, mode="valid")
+    avg_episodes = episodes[window - 1 :]
+    return avg_episodes, avg_rewards
 
 
-def plot_reward_trend(
-    episodes: np.ndarray,
-    rewards: np.ndarray,
-    window: int,
+def collect_run_data(folder: Path, window: int, np):
+    """Read one folder and return parsed reward series."""
+    log_file = resolve_log_file(folder)
+    episodes, rewards = parse_episode_rewards(log_file, np)
+    avg_episodes, avg_rewards = moving_average(episodes, rewards, window, np)
+    label = folder.name if folder.name else str(folder)
+
+    return {
+        "folder": folder,
+        "label": label,
+        "log_file": log_file,
+        "episodes": episodes,
+        "rewards": rewards,
+        "avg_episodes": avg_episodes,
+        "avg_rewards": avg_rewards,
+    }
+
+
+def plot_runs(
+    runs,
     title: str,
-    output: Path | None,
-    show: bool,
-) -> None:
-    """Plot rewards and trend lines."""
+    output_name: str,
+    np,
+    plt,
+):
+    """Plot raw moving-average reward trends for multiple runs."""
     plt.figure(figsize=(11, 5.5))
-    plt.plot(episodes, rewards, color="#4C78A8", alpha=0.35, linewidth=1.2, label="Episode reward")
+    plotted_values = []
+    plotted_episodes = []
 
-    if len(rewards) >= window and window > 1:
-        ma_values = moving_average(rewards, window)
-        ma_episodes = episodes[window - 1 :]
-        plt.plot(
-            ma_episodes,
-            ma_values,
-            color="#F58518",
-            linewidth=2.2,
-            label=f"{window}-episode moving average",
-        )
+    for run in runs:
+        x = run["avg_episodes"]
+        y = run["avg_rewards"]
+        plotted_values.append(y)
+        plotted_episodes.append(x)
+        line = plt.plot(x, y, linewidth=2.0, label=run["label"])[0]
 
-    if len(rewards) >= 2:
-        slope, intercept = np.polyfit(episodes.astype(np.float64), rewards, 1)
-        trend = slope * episodes + intercept
-        plt.plot(episodes, trend, color="#54A24B", linestyle="--", linewidth=2.0, label="Linear trend")
+        # Add a linear trend line for each run.
+        if len(y) >= 2:
+            slope, intercept = np.polyfit(x.astype(np.float64), y, 1)
+            trend = slope * x + intercept
+            plotted_values.append(trend)
+            plt.plot(
+                x,
+                trend,
+                linestyle="--",
+                linewidth=1.6,
+                alpha=0.85,
+                color=line.get_color(),
+                label=f"{run['label']} trend",
+            )
 
     plt.title(title)
     plt.xlabel("Episode")
-    plt.ylabel("Total reward")
+    plt.ylabel("Reward")
+    if plotted_values:
+        y_min = min(float(np.min(arr)) for arr in plotted_values if len(arr) > 0)
+        y_max = max(float(np.max(arr)) for arr in plotted_values if len(arr) > 0)
+        if y_min == y_max:
+            pad = 1e-6 if y_min == 0 else abs(y_min) * 1e-6
+            y_min -= pad
+            y_max += pad
+        plt.ylim(y_min, y_max)
+    if plotted_episodes:
+        x_min = min(float(np.min(arr)) for arr in plotted_episodes if len(arr) > 0)
+        x_max = max(float(np.max(arr)) for arr in plotted_episodes if len(arr) > 0)
+        if x_min == x_max:
+            x_max += 1.0
+        plt.xlim(x_min, x_max)
+    plt.margins(x=0, y=0)
     plt.grid(alpha=0.25)
-    plt.legend()
+    plt.legend(fontsize=8)
     plt.tight_layout()
 
-    if output is not None:
-        output.parent.mkdir(parents=True, exist_ok=True)
-        plt.savefig(output, dpi=160)
-        print(f"Saved plot to: {output}")
+    output_path = Path.cwd() / output_name
+    plt.savefig(output_path, dpi=160)
+    plt.close()
+    print(f"Saved plot to: {output_path}")
 
-    if show:
-        plt.show()
-    else:
-        plt.close()
+
+def summarize_run(run):
+    rewards = run["rewards"]
+    print(f"Using log file: {run['log_file']}")
+    print(f"Episodes parsed: {len(run['episodes'])}")
+    print(f"Reward min/mean/max: {rewards.min():.3f} / {rewards.mean():.3f} / {rewards.max():.3f}")
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Read per-episode total reward from rl-agents logs and plot trend lines."
+        description=(
+            "Read per-episode rewards from multiple run folders and generate "
+            "one raw reward trend image in the current working directory."
+        )
     )
     parser.add_argument(
-        "input_path",
+        "folders",
+        nargs="+",
         type=Path,
-        help="Path to a logging file or a run directory containing logging*.log",
+        help="One or more run folders (each containing logging*.log)",
     )
     parser.add_argument(
         "--window",
@@ -140,21 +203,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="Moving-average window size (default: 50)",
     )
     parser.add_argument(
-        "--output",
-        type=Path,
-        default=None,
-        help="Optional output image path (for example: reward_trend.png)",
-    )
-    parser.add_argument(
-        "--title",
-        type=str,
-        default="Episode Total Reward Trend",
-        help="Plot title",
-    )
-    parser.add_argument(
         "--no-show",
         action="store_true",
-        help="Do not open an interactive window",
+        help="Deprecated flag kept for compatibility. Plots are always saved without showing.",
     )
     return parser
 
@@ -165,20 +216,18 @@ def main() -> None:
     if args.window < 1:
         raise ValueError("--window must be >= 1")
 
-    log_file = resolve_log_file(args.input_path)
-    episodes, rewards = parse_episode_rewards(log_file)
+    np, plt = import_plot_dependencies(no_show=True)
 
-    print(f"Using log file: {log_file}")
-    print(f"Episodes parsed: {len(episodes)}")
-    print(f"Reward min/mean/max: {rewards.min():.3f} / {rewards.mean():.3f} / {rewards.max():.3f}")
+    runs = [collect_run_data(folder, args.window, np) for folder in args.folders]
+    for run in runs:
+        summarize_run(run)
 
-    plot_reward_trend(
-        episodes=episodes,
-        rewards=rewards,
-        window=args.window,
-        title=args.title,
-        output=args.output,
-        show=not args.no_show,
+    plot_runs(
+        runs=runs,
+        title=f"Reward Trend ({args.window}-episode average), moving averages only",
+        output_name="trend.png",
+        np=np,
+        plt=plt,
     )
 
 
