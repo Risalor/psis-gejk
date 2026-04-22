@@ -53,8 +53,10 @@ class CMakeBuild(build_ext):
             os.path.dirname(self.get_ext_fullpath(ext.name)))
 
         cmake_args = [
-            "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + ext_dir,
-            "-DPYTHON_EXECUTABLE=" + sys.executable
+            '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=',
+            '-DPYTHON_EXECUTABLE=' + sys.executable,
+            '-DCMAKE_BUILD_TYPE=' + cfg,
+            '-DCMAKE_POLICY_VERSION_MINIMUM=3.5'
         ]
 
         cfg = "Debug" if self.debug else "Release"

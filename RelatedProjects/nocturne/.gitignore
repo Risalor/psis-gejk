@@ -11,7 +11,6 @@ bin/
 
 # media
 *.mov
-*.png
 
 # Python
 __pycache__/
