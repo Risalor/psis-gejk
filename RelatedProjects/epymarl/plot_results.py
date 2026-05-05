@@ -124,6 +124,13 @@ def load_results(path, metric):
                 f"Metric {metric} not found in {file}. To plot returns for runs with individual rewards (common_reward=False), you can plot 'total_return' metrics or returns of individual agents --> skipping"
             )
             continue
+        elif metric.startswith("test_") and not any(
+            key.startswith("test_") for key in metrics
+        ):
+            warnings.warn(
+                f"Metric {metric} not found in {file}. This run does not contain test metrics (likely no evaluation episodes were logged, e.g. test_interval > t_max) --> skipping"
+            )
+            continue
         else:
             warnings.warn(f"Metric {metric} not found in {file} --> skipping")
             continue
@@ -181,10 +188,15 @@ def aggregate_results(data):
     """
     agg_data = defaultdict(list)
     for key, results in data.items():
+        if not results:
+            continue
         config = results[0][0]
         all_steps = []
         all_values = []
         max_len = max([len(steps) for _, steps, _ in results])
+        if max_len == 0:
+            warnings.warn(f"No datapoints found for config {key} --> skipping")
+            continue
 
         for _, steps, values in results:
             if len(steps) != max_len:
@@ -211,11 +223,19 @@ def smooth_data(data, window_size):
     :param window_size: size of window for smoothing
     :return: smoothed data as dict with key -> (config, smoothed_steps, smoothed_means, smoothed_stds)
     """
+    if window_size <= 1:
+        return data
+
     for key, results in data.items():
         config, steps, means, stds = results
         assert (
             len(steps) == len(means) == len(stds)
         ), "Lengths of steps, means, and stds should be the same for smoothing"
+        if len(means) < window_size:
+            warnings.warn(
+                f"Smoothing window ({window_size}) is larger than number of points ({len(means)}) for config {key}. Skipping smoothing for this curve."
+            )
+            continue
         smoothed_steps = []
         smoothed_means = []
         smoothed_stds = []
@@ -291,7 +311,13 @@ def _sorted_alg_names_by_mean(data):
     :param data: dict with alg names -> (config, steps, means, stds)
     :return: list of sorted alg names
     """
-    return sorted(data, key=lambda x: np.mean(data[x][2]), reverse=True)
+    def _safe_curve_mean(config_key):
+        means = data[config_key][2]
+        if len(means) == 0:
+            return -np.inf
+        return np.nanmean(means)
+
+    return sorted(data, key=_safe_curve_mean, reverse=True)
 
 
 def _filter_best_per_alg(data):
@@ -300,8 +326,33 @@ def _filter_best_per_alg(data):
     :param data: dict with key -> (config, steps, means, stds)
     :return: key with highest mean value of means
     """
-    means = {key: np.mean(data[key][2]) for key in data}
+    means = {
+        key: (np.nanmean(data[key][2]) if len(data[key][2]) > 0 else -np.inf)
+        for key in data
+    }
     return max(means, key=means.get)
+
+
+def remove_empty_curves(data):
+    """
+    Remove curves without datapoints.
+    :param data: dict with results
+    :return: pruned data
+    """
+    pruned_data = defaultdict(dict)
+    for env_key, env_data in data.items():
+        for alg_name, alg_data in env_data.items():
+            non_empty_configs = {}
+            for config_key, (config, steps, means, stds) in alg_data.items():
+                if len(steps) == 0 or len(means) == 0 or len(stds) == 0:
+                    warnings.warn(
+                        f"Curve has no datapoints for {alg_name} ({config_key}) --> skipping"
+                    )
+                    continue
+                non_empty_configs[config_key] = (config, steps, means, stds)
+            if non_empty_configs:
+                pruned_data[env_key][alg_name] = non_empty_configs
+    return pruned_data
 
 
 def plot_results(data, metric, save_dir, y_min, y_max, log_scale):
@@ -359,6 +410,10 @@ def main():
     args = parse_args()
     data = load_results(args.path, args.metric)
     data = filter_results(data, args.filter_by_algs, args.filter_by_envs)
+    if len(data) == 0:
+        raise SystemExit(
+            f"No runs found for metric '{args.metric}' after filtering. If you requested a test metric, ensure your runs logged test episodes (check test_interval vs t_max)."
+        )
     data = {
         env_key: {
             alg_name: aggregate_results(alg_data)
@@ -381,6 +436,11 @@ def main():
         }
         for env_key, env_data in data.items()
     }
+    data = remove_empty_curves(data)
+    if len(data) == 0:
+        raise SystemExit(
+            "No plottable curves remain after aggregation/smoothing. Try a smaller smoothing window or a different metric."
+        )
     if args.best_per_alg:
         best_data = defaultdict(dict)
         for env_key, env_data in data.items():
