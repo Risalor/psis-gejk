@@ -31,9 +31,10 @@ from rl_agents.trainer import logger
 from rl_agents.trainer.evaluation import Evaluation
 from rl_agents.agents.common.factory import load_agent, load_environment
 
+SCRIPT_DIR = Path(__file__).parent
 BENCHMARK_FILE = 'benchmark_summary'
-LOGGING_CONFIG = 'configs/logging.json'
-VERBOSE_CONFIG = 'configs/verbose.json'
+LOGGING_CONFIG = str(SCRIPT_DIR / 'configs' / 'logging.json')
+VERBOSE_CONFIG = str(SCRIPT_DIR / 'configs' / 'verbose.json')
 
 
 def main():
