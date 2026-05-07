@@ -46,7 +46,6 @@ def moving_average(arr: np.ndarray, w: int) -> np.ndarray:
 
 
 def load_runs(paths: list[Path]):
-    """Load all runs and return list of dicts."""
     runs = []
     for path in paths:
         log_file = resolve_log_file(path)
@@ -149,6 +148,32 @@ def graph_stability(runs, out_dir: Path, std_window: int):
     ax.grid(alpha=0.3)
     fig.tight_layout(rect=(0.0, 0.0, 0.8, 1.0))
     out = out_dir / "03_stability.png"
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    print(f"  Saved: {out}")
+
+
+def graph_comparison_bar(runs, out_dir: Path):
+    labels = [run["label"] for run in runs]
+    means = [run["rewards"].mean() for run in runs]
+    bests = [run["rewards"].max() for run in runs]
+
+    x = np.arange(len(labels))
+    width = 0.35
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    rects1 = ax.bar(x - width/2, means, width, label='Average Reward', color='#3498db')
+    rects2 = ax.bar(x + width/2, bests, width, label='Best Episode', color='#2ecc71')
+
+    ax.set_ylabel('Reward Score')
+    ax.set_title('Environment Performance Comparison')
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=25, ha="right")
+    ax.legend()
+    ax.grid(axis='y', alpha=0.3)
+
+    fig.tight_layout()
+    out = out_dir / "04_env_comparison.png"
     fig.savefig(out, dpi=150)
     plt.close(fig)
     print(f"  Saved: {out}")
