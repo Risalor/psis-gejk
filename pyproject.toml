@@ -1,9 +1,13 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "psis-gejk"
 version = "0.1.0"
-description = "Add your description here"
+description = "Autonomous agent learning in dense traffic using RL"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.11"
 dependencies = [
     "docopt>=0.6.2",
     "gymnasium>=1.3.0",
@@ -15,7 +19,6 @@ dependencies = [
     "pandas>=3.0.2",
     "pygame>=2.6.1",
     "pyvirtualdisplay>=3.0",
-    "rl-agents>=0.1.0",
     "scipy>=1.17.1",
     "seaborn>=0.13.2",
     "tensorboard>=2.20.0",
@@ -24,3 +27,12 @@ dependencies = [
     "torchvision>=0.26.0",
     "xvfbwrapper>=0.2.23",
 ]
+
+[project.scripts]
+experiments = "scripts.experiments:main"
+
+[tool.setuptools]
+packages = ["rl_agents", "scripts"]
+
+[tool.setuptools.package-data]
+scripts = ["configs/**/*.json"]
