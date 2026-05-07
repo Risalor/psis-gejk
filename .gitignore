@@ -13,6 +13,8 @@ _build
 # Editor files
 .idea
 scripts/out/
+scripts/envComparisonGraphs
+scripts/intersection_env_comparison_graphs
 # Test files
 .pytest_cache
 .cache

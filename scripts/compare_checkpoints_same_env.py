@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
-"""Compare checkpoint performance from two runs on one shared environment.
+"""Compare best/final checkpoint performance from multiple runs on one shared environment.
 
-This script intentionally has no CLI options.
-It uses two hardcoded run folders and one shared environment config.
-For every checkpoint in each run, it executes 100 test episodes and records:
-- mean return
-- min return
-- max return
-
-It then writes a line-graph figure in the scripts directory.
+For each run only checkpoint-best.tar and checkpoint-final.tar are tested.
+Each run gets its own PNG in envComparisonGraphs/.
+A combined histogram PNG shows score distributions across all runs/checkpoints
+based on 100 test episodes each.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -23,48 +21,73 @@ from rl_agents.agents.common.factory import load_agent, load_environment
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
 
-# Shared environment for both checkpoint groups.
-ENV_CONFIG = SCRIPTS_DIR / "configs/IntersectionEnv/env.json"
+# ENV_CONFIG   = SCRIPTS_DIR / "configs/IntersectionEnv/env.json"
+# AGENT_CONFIG = SCRIPTS_DIR / "configs/IntersectionEnv/agents/DQNAgent/baseline.json"
 
-# Shared agent architecture used for both checkpoint groups.
-AGENT_CONFIG = SCRIPTS_DIR / "configs/IntersectionEnv/agents/DQNAgent/baseline.json"
+# CHECKPOINT_GROUPS = [
+#     {
+#         "name": "baseline_env",
+#         "run_dir": SCRIPTS_DIR / "out/IntersectionEnv/DQNAgent/baseline_env",
+#     },
+#     {
+#         "name": "multiagent_baseline_env0",
+#         "run_dir": SCRIPTS_DIR / "out/MultiAgentIntersectionEnv/DQNAgent/baseline_multiagent_env0",
+#     },
+#     {
+#         "name": "multiagent_baseline_env1",
+#         "run_dir": SCRIPTS_DIR / "out/MultiAgentIntersectionEnv/DQNAgent/baseline_multiagent_env1",
+#     },
+#     {
+#         "name": "multiagent_baseline_env2",
+#         "run_dir": SCRIPTS_DIR / "out/MultiAgentIntersectionEnv/DQNAgent/baseline_multiagent_env2",
+#     },
+# ]
+ENV_CONFIG   = SCRIPTS_DIR / "configs/IntersectionEnv/env.json"
+AGENT_CONFIG = SCRIPTS_DIR / "configs/IntersectionEnv/agents/DQNAgent/ego_attention_2h.json"
 
-# Two hardcoded checkpoint groups requested by user.
 CHECKPOINT_GROUPS = [
     {
-        "name": "baseline_test1",
-        "run_dir": SCRIPTS_DIR / "out/IntersectionEnv/DQNAgent/baseline_test1",
+        "name": "ego_attention",
+        "run_dir": SCRIPTS_DIR / "out/IntersectionEnv/DQNAgent/ego_attention_env",
     },
     {
-        "name": "multiagent_baseline",
-        "run_dir": SCRIPTS_DIR / "out/MultiAgentIntersectionEnv/DQNAgent/baseline_20260422-202914_954380",
+        "name": "multiagent_ego_attention_env0",
+        "run_dir": SCRIPTS_DIR / "out/MultiAgentIntersectionEnv/DQNAgent/ego_attention_multiagent_env0",
+    },
+    {
+        "name": "multiagent_ego_attention_env1",
+        "run_dir": SCRIPTS_DIR / "out/MultiAgentIntersectionEnv/DQNAgent/ego_attention_multiagent_env1",
+    },
+    {
+        "name": "multiagent_ego_attention_env2",
+        "run_dir": SCRIPTS_DIR / "out/MultiAgentIntersectionEnv/DQNAgent/ego_attention_multiagent_env2",
     },
 ]
+# ENV_CONFIG   = SCRIPTS_DIR / "configs/IntersectionEnv/env_grid_dense.json"
+# AGENT_CONFIG = SCRIPTS_DIR / "configs/IntersectionEnv/agents/DQNAgent/grid_convnet.json"
 
-EPISODES_PER_CHECKPOINT = 10
-OUTPUT_FIGURE = SCRIPTS_DIR / "checkpoint_comparison_same_env.png"
-
-
-def checkpoint_token(checkpoint_path: Path) -> str:
-    return checkpoint_path.stem.replace("checkpoint-", "", 1)
-
-
-def checkpoint_sort_key(checkpoint_path: Path):
-    token = checkpoint_token(checkpoint_path)
-    if token.isdigit():
-        return (0, int(token))
-    if token == "best":
-        return (1, 10**9)
-    if token == "final":
-        return (2, 10**9)
-    return (3, token)
+# CHECKPOINT_GROUPS = [
+#     {
+#         "name": "lobotomy",
+#         "run_dir": SCRIPTS_DIR / "out/MultiAgentIntersectionEnv/DQNAgent/grid_convnet_multiagent_env0",
+#     },
+    
+# ]
+EPISODES_PER_CHECKPOINT = 100
+OUTPUT_DIR = SCRIPTS_DIR / "envComparisonGraphs"
 
 
 def discover_checkpoints(run_dir: Path) -> list[Path]:
-    checkpoints = sorted(run_dir.glob("checkpoint-*.tar"), key=checkpoint_sort_key)
-    if not checkpoints:
-        raise FileNotFoundError(f"No checkpoints found in {run_dir}")
-    return checkpoints
+    """Return [ checkpoint-final.tar] that exist in run_dir."""
+    candidates = ["checkpoint-final.tar"]
+    found = [run_dir / name for name in candidates if (run_dir / name).exists()]
+    if not found:
+        raise FileNotFoundError(f"No best/final checkpoints found in {run_dir}")
+    return found
+
+
+def checkpoint_label(checkpoint_path: Path) -> str:
+    return checkpoint_path.stem.replace("checkpoint-", "", 1)
 
 
 def scalar_reward(reward) -> float:
@@ -74,7 +97,7 @@ def scalar_reward(reward) -> float:
 
 
 def run_test_episodes(checkpoint_path: Path, episodes: int) -> np.ndarray:
-    env = load_environment(str(ENV_CONFIG))
+    env   = load_environment(str(ENV_CONFIG))
     agent = load_agent(str(AGENT_CONFIG), env)
     agent.load(str(checkpoint_path))
     try:
@@ -85,27 +108,20 @@ def run_test_episodes(checkpoint_path: Path, episodes: int) -> np.ndarray:
     episode_returns = []
     for episode in range(episodes):
         reset_output = env.reset(seed=episode)
-        if isinstance(reset_output, tuple) and len(reset_output) == 2:
-            observation, _ = reset_output
-        else:
-            observation = reset_output
+        observation  = reset_output[0] if isinstance(reset_output, tuple) else reset_output
 
-        terminated = False
-        truncated = False
+        terminated = truncated = False
         total_reward = 0.0
         while not (terminated or truncated):
             action_sequence = agent.plan(observation)
             if not action_sequence:
                 raise RuntimeError("Agent returned an empty action sequence")
-            action = action_sequence[0]
-
-            step_output = env.step(action)
+            step_output = env.step(action_sequence[0])
             if len(step_output) == 5:
                 observation, reward, terminated, truncated, _ = step_output
             else:
                 observation, reward, done, _ = step_output
                 terminated, truncated = bool(done), False
-
             total_reward += scalar_reward(reward)
 
         episode_returns.append(total_reward)
@@ -114,67 +130,95 @@ def run_test_episodes(checkpoint_path: Path, episodes: int) -> np.ndarray:
     return np.array(episode_returns, dtype=np.float64)
 
 
-def evaluate_group(group_name: str, run_dir: Path) -> list[dict]:
+def evaluate_group(name: str, run_dir: Path) -> list[dict]:
     checkpoints = discover_checkpoints(run_dir)
     results = []
 
-    print(f"\nEvaluating group: {group_name}")
-    print(f"Run directory: {run_dir}")
-    print(f"Shared env config: {ENV_CONFIG}")
-    print(f"Checkpoints found: {len(checkpoints)}")
-
-    for checkpoint in checkpoints:
-        token = checkpoint_token(checkpoint)
-        print(f"  -> Testing checkpoint-{token}.tar for {EPISODES_PER_CHECKPOINT} episodes")
-        returns = run_test_episodes(checkpoint, EPISODES_PER_CHECKPOINT)
-        results.append(
-            {
-                "checkpoint": token,
-                "mean": float(np.mean(returns)),
-                "min": float(np.min(returns)),
-                "max": float(np.max(returns)),
-            }
-        )
+    print(f"\nEvaluating: {name}  ({run_dir.name})")
+    for ckpt in checkpoints:
+        label = checkpoint_label(ckpt)
+        print(f"  -> {ckpt.name}  ({EPISODES_PER_CHECKPOINT} episodes)")
+        returns = run_test_episodes(ckpt, EPISODES_PER_CHECKPOINT)
+        results.append({
+            "checkpoint": label,
+            "returns":    returns,
+            "mean":       float(np.mean(returns)),
+            "min":        float(np.min(returns)),
+            "max":        float(np.max(returns)),
+            "std":        float(np.std(returns)),
+        })
+        print(f"     mean={results[-1]['mean']:.3f}  std={results[-1]['std']:.3f}  "
+              f"min={results[-1]['min']:.3f}  max={results[-1]['max']:.3f}")
 
     return results
 
 
-def plot_results(group_results: dict[str, list[dict]]) -> None:
-    figure, axes = plt.subplots(len(group_results), 1, figsize=(13, 5 * len(group_results)), squeeze=False)
+def _histogram_axes(axes_row: list, series: list[dict], title_prefix: str) -> None:
+    """Fill a row of axes (one per checkpoint) with individual histograms."""
+    colors = ["steelblue", "tomato"]
+    all_vals  = np.concatenate([item["returns"] for item in series])
+    x_min     = np.floor(all_vals.min() * 2) / 2
+    x_max     = np.ceil(all_vals.max() * 2) / 2
+    bin_edges = np.arange(x_min - 0.25, x_max + 0.5, 0.5)
+    ticks     = np.arange(x_min, x_max + 0.5, 0.5)
 
-    for index, (group_name, series) in enumerate(group_results.items()):
-        axis = axes[index, 0]
-        x = np.arange(len(series), dtype=np.int64)
-        labels = [item["checkpoint"] for item in series]
-        mean_values = np.array([item["mean"] for item in series], dtype=np.float64)
-        min_values = np.array([item["min"] for item in series], dtype=np.float64)
-        max_values = np.array([item["max"] for item in series], dtype=np.float64)
+    for idx, (ax, item) in enumerate(zip(axes_row, series)):
+        ax.hist(
+            item["returns"],
+            bins=bin_edges,
+            color=colors[idx % len(colors)],
+            edgecolor="white",
+            linewidth=0.5,
+        )
+        ax.set_title(f"{title_prefix}  —  {item['checkpoint']}  (n={EPISODES_PER_CHECKPOINT})")
+        ax.set_xlabel("Score")
+        ax.set_ylabel("Count")
+        ax.set_xticks(ticks)
+        ax.set_xticklabels([f"{int(v)}" if v == int(v) and int(v) % 2 == 0 else "" for v in ticks])
+        ax.grid(axis="y", alpha=0.25)
 
-        axis.plot(x, mean_values, marker="o", linewidth=2.2, label="mean")
-        axis.plot(x, min_values, marker="x", linewidth=1.6, linestyle="--", label="min")
-        axis.plot(x, max_values, marker="x", linewidth=1.6, linestyle="--", label="max")
-        axis.fill_between(x, min_values, max_values, alpha=0.12)
 
-        axis.set_title(f"{group_name} (shared env: {ENV_CONFIG.name}, episodes={EPISODES_PER_CHECKPOINT})")
-        axis.set_xlabel("Checkpoint")
-        axis.set_ylabel("Episode return")
-        axis.set_xticks(x)
-        axis.set_xticklabels(labels, rotation=45, ha="right")
-        axis.grid(alpha=0.25)
-        axis.legend()
+def plot_group(name: str, series: list[dict], out_dir: Path) -> None:
+    """One subplot per checkpoint (best / final) side by side."""
+    fig, axes = plt.subplots(1, len(series), figsize=(10, 5), squeeze=False)
+    _histogram_axes(list(axes[0]), series, name)
+    fig.tight_layout()
+    out = out_dir / f"{name}.png"
+    fig.savefig(out, dpi=180)
+    plt.close(fig)
+    print(f"  Saved: {out}")
 
-    figure.tight_layout()
-    figure.savefig(OUTPUT_FIGURE, dpi=180)
-    plt.close(figure)
-    print(f"\nSaved plot to: {OUTPUT_FIGURE}")
+
+def plot_combined_histogram(all_groups: list[dict], out_dir: Path) -> None:
+    """Grid: one row per agent, one column per checkpoint (best / final)."""
+    n_groups = len(all_groups)
+    n_cols   = max(len(g["results"]) for g in all_groups)
+    fig, axes = plt.subplots(n_groups, n_cols, figsize=(10 * n_cols, 5 * n_groups), squeeze=False)
+
+    for row, group in enumerate(all_groups):
+        _histogram_axes(list(axes[row]), group["results"], group["name"])
+
+    fig.tight_layout()
+    out = out_dir / "all_histogram.png"
+    fig.savefig(out, dpi=180)
+    plt.close(fig)
+    print(f"  Saved: {out}")
 
 
 def main() -> None:
-    all_results = {}
-    for group in CHECKPOINT_GROUPS:
-        all_results[group["name"]] = evaluate_group(group["name"], group["run_dir"])
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    plot_results(all_results)
+    all_groups = []
+    for group in CHECKPOINT_GROUPS:
+        results = evaluate_group(group["name"], group["run_dir"])
+        all_groups.append({"name": group["name"], "results": results})
+
+    print("\nPlotting individual group graphs...")
+    for group in all_groups:
+        plot_group(group["name"], group["results"], OUTPUT_DIR)
+
+    print("Plotting combined histogram...")
+    plot_combined_histogram(all_groups, OUTPUT_DIR)
 
 
 if __name__ == "__main__":

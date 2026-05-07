@@ -17,6 +17,6 @@
 			"order": "shuffled"
 		}
 	},
-	"initial_vehicle_count": 6,
-	"controlled_vehicles": 6
+	"initial_vehicle_count": 15,
+	"controlled_vehicles": 10
 }
