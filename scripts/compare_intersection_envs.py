@@ -41,46 +41,44 @@ AGENT_CONFIGS = {
 }
 
 RUNS = [
-    # {
-    #     "label": "baseline / env",
-    #     "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env.json",
-    #     "agent_config": AGENT_CONFIGS["baseline"],
-    # },
-    # {
-    #     "label": "grid / grid_env",
-    #     "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_grid_dense.json",
-    #     "agent_config": AGENT_CONFIGS["baseline"],
-    # },
-    # {
-    #     "label": "ego / env",
-    #     "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env.json",
-    #     "agent_config": AGENT_CONFIGS["baseline"],
-    # },
-    # {
-    #     "label": "baseline / multi_model",
-    #     "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent.json",
-    #     "agent_config": AGENT_CONFIGS["baseline"],
-    # },
+
+    #JASA
     {
         "label": "baseline / multi_agent1",
         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent1.json",
         "agent_config": AGENT_CONFIGS["baseline"],
     },
-    # {
-    #     "label": "baseline / multi_model2",
-    #     "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent2.json",
-    #     "agent_config": AGENT_CONFIGS["baseline"],
-    # },
-    
-    # {
-    #     "label": "ego / multi_agent",
-    #     "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent.json",
-    #     "agent_config": AGENT_CONFIGS["ego"],
-    # },
     {
-        "label": "ego / multi_agent1",
-        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent1.json",
+        "label": "ego / env",
+        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env.json",
         "agent_config": AGENT_CONFIGS["ego"],
+    },
+    {
+        "label": "grid / env",
+        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_grid_dense.json",
+        "agent_config": AGENT_CONFIGS["grid"],
+    },
+    #EVA
+    {
+        "label": "baseline / multi_agent",
+        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent.json",
+        "agent_config": AGENT_CONFIGS["baseline"],
+    },
+    {
+        "label": "ego / multi_agent",
+        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent.json",
+        "agent_config": AGENT_CONFIGS["ego"],
+    },
+    {
+        "label": "grid / multi_agent_grid",
+        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid.json",
+        "agent_config": AGENT_CONFIGS["grid"],
+    },
+    #KRIS
+    {
+        "label": "baseline / multi_agent1",
+        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent1.json",
+        "agent_config": AGENT_CONFIGS["baseline"],
     },
     # {
     #     "label": "ego / multi_agent2",
@@ -93,15 +91,32 @@ RUNS = [
     #     "agent_config": AGENT_CONFIGS["grid"],
     # },
     {
-        "label": "grid / multi_agent_grid1",
+        "label": "baseline / multi_agent1",
+        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent1.json",
+        "agent_config": AGENT_CONFIGS["ego"],
+    },
+    {
+        "label": "ego / multi_agent_grid1",
         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid1.json",
         "agent_config": AGENT_CONFIGS["grid"],
     },
-    # {
-    #     "label": "grid / multi_agent_grid2",
-    #     "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid2.json",
-    #     "agent_config": AGENT_CONFIGS["grid"],
-    # },
+    #GAL
+    {
+        "label": "baseline / multi_agent2",
+        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent2.json",
+        "agent_config": AGENT_CONFIGS["baseline"],
+    },
+    {
+        "label": "ego / multi_agent2",
+        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent2.json",
+        "agent_config": AGENT_CONFIGS["ego"],
+    },
+    {
+        "label": "grid / multi_agent_grid2",
+        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid2.json",
+        "agent_config": AGENT_CONFIGS["grid"],
+    },
+
 ]
 DEFAULT_EPISODES = 10
 DEFAULT_MOVING_AVERAGE_WINDOW = 2
