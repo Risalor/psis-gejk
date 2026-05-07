@@ -6,8 +6,8 @@
     },
     "gamma": 0.95,
     "n_steps": 1,
-    "batch_size": 64,
-    "memory_capacity": 15000,
+    "batch_size": 1000,
+    "memory_capacity": 500000,
     "target_update": 512,
     "exploration": {
         "method": "EpsilonGreedy",

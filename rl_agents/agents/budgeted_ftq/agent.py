@@ -59,7 +59,7 @@ class BFTQAgent(AbstractAgent):
             "split_batches": 1,
             "processes": 1,
             "samples_per_batch": 500,
-            "device": "cuda:best",
+            "device": "cuda",
             "hull_options": {
                 "decimals": None,
                 "qhull_options": "",

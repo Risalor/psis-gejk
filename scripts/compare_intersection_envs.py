@@ -25,7 +25,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 SCRIPT_DIR = Path(__file__).resolve().parent
 EXPERIMENTS_SCRIPT = SCRIPT_DIR / "experiments.py"
 AGENT_CONFIGS = {

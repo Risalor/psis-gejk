@@ -85,7 +85,7 @@ def least_used_device():
 
 def choose_device(preferred_device, default_device="cpu"):
     try:
-        if preferred_device == "cuda:best":
+        if preferred_device == "cuda":
             preferred_device = least_used_device()
         torch.zeros((1,), device=preferred_device)  # Test availability
         return preferred_device

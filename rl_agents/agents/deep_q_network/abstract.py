@@ -29,7 +29,7 @@ class AbstractDQNAgent(AbstractStochasticAgent, ABC):
                     memory_capacity=50000,
                     batch_size=100,
                     gamma=0.99,
-                    device="cuda:best",
+                    device="cuda",
                     exploration=dict(method="EpsilonGreedy"),
                     target_update=1,
                     double=True)
