@@ -56,49 +56,49 @@ RUNS = [
     },
     #EVA
     {
-        "label": "baseline / multi_model",
+        "label": "baseline / multi_agent",
         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent.json",
         "agent_config": AGENT_CONFIGS["baseline"],
     },
     {
-        "label": "baseline / multi_model",
+        "label": "ego / multi_agent",
         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent.json",
         "agent_config": AGENT_CONFIGS["ego"],
     },
     {
-        "label": "baseline / multi_model",
+        "label": "grid / multi_agent_grid",
         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid.json",
         "agent_config": AGENT_CONFIGS["grid"],
     },
     #KRIS
     {
-        "label": "baseline / multi_model",
+        "label": "baseline / multi_agent1",
         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent1.json",
         "agent_config": AGENT_CONFIGS["baseline"],
     },
     {
-        "label": "baseline / multi_model",
+        "label": "baseline / multi_agent1",
         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent1.json",
         "agent_config": AGENT_CONFIGS["ego"],
     },
     {
-        "label": "baseline / multi_model",
+        "label": "ego / multi_agent_grid1",
         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid1.json",
         "agent_config": AGENT_CONFIGS["grid"],
     },
     #GAL
     {
-        "label": "baseline / multi_model",
+        "label": "baseline / multi_agent2",
         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent2.json",
         "agent_config": AGENT_CONFIGS["baseline"],
     },
     {
-        "label": "baseline / multi_model",
+        "label": "ego / multi_agent2",
         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent2.json",
         "agent_config": AGENT_CONFIGS["ego"],
     },
     {
-        "label": "baseline / multi_model",
+        "label": "grid / multi_agent_grid2",
         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid2.json",
         "agent_config": AGENT_CONFIGS["grid"],
     },
