@@ -29,7 +29,11 @@ import numpy as np
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 EXPERIMENTS_SCRIPT = SCRIPT_DIR / "experiments.py"
-PLOT_MORE_GRAPHS_SCRIPT = SCRIPT_DIR / "plot_more_graphs.py"
+
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+from plot_more_graphs import graph_reward_curve, graph_histogram, graph_stability  # noqa: E402
+
 AGENT_CONFIGS = {
     "baseline": SCRIPT_DIR / "configs/IntersectionEnv/agents/DQNAgent/baseline.json",
     "ego": SCRIPT_DIR / "configs/IntersectionEnv/agents/DQNAgent/ego_attention_2h.json",
@@ -37,71 +41,71 @@ AGENT_CONFIGS = {
 }
 
 RUNS = [
+    # {
+    #     "label": "baseline / env",
+    #     "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env.json",
+    #     "agent_config": AGENT_CONFIGS["baseline"],
+    # },
+    # {
+    #     "label": "grid / grid_env",
+    #     "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_grid_dense.json",
+    #     "agent_config": AGENT_CONFIGS["baseline"],
+    # },
+    # {
+    #     "label": "ego / env",
+    #     "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env.json",
+    #     "agent_config": AGENT_CONFIGS["baseline"],
+    # },
+    # {
+    #     "label": "baseline / multi_model",
+    #     "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent.json",
+    #     "agent_config": AGENT_CONFIGS["baseline"],
+    # },
     {
-        "label": "baseline / env",
-        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env.json",
+        "label": "baseline / multi_agent1",
+        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent1.json",
         "agent_config": AGENT_CONFIGS["baseline"],
     },
-    {
-        "label": "grid / grid_env",
-        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_grid_dense.json",
-        "agent_config": AGENT_CONFIGS["baseline"],
-    },
-    {
-        "label": "ego / env",
-        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env.json",
-        "agent_config": AGENT_CONFIGS["baseline"],
-    },
-    {
-        "label": "baseline / multi_model",
-        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_model.json",
-        "agent_config": AGENT_CONFIGS["baseline"],
-    },
-    {
-        "label": "baseline / multi_model1",
-        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_model.json",
-        "agent_config": AGENT_CONFIGS["baseline"],
-    },
-    {
-        "label": "baseline / multi_model2",
-        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_model.json",
-        "agent_config": AGENT_CONFIGS["baseline"],
-    },
+    # {
+    #     "label": "baseline / multi_model2",
+    #     "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent2.json",
+    #     "agent_config": AGENT_CONFIGS["baseline"],
+    # },
     
-    {
-        "label": "ego / multi_agent",
-        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent.json",
-        "agent_config": AGENT_CONFIGS["ego"],
-    },
+    # {
+    #     "label": "ego / multi_agent",
+    #     "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent.json",
+    #     "agent_config": AGENT_CONFIGS["ego"],
+    # },
     {
         "label": "ego / multi_agent1",
         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent1.json",
         "agent_config": AGENT_CONFIGS["ego"],
     },
-    {
-        "label": "ego / multi_agent2",
-        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent2.json",
-        "agent_config": AGENT_CONFIGS["ego"],
-    },
-    {
-        "label": "grid / multi_agent_grid",
-        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid.json",
-        "agent_config": AGENT_CONFIGS["grid"],
-    },
+    # {
+    #     "label": "ego / multi_agent2",
+    #     "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent2.json",
+    #     "agent_config": AGENT_CONFIGS["ego"],
+    # },
+    # {
+    #     "label": "grid / multi_agent_grid",
+    #     "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid.json",
+    #     "agent_config": AGENT_CONFIGS["grid"],
+    # },
     {
         "label": "grid / multi_agent_grid1",
         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid1.json",
         "agent_config": AGENT_CONFIGS["grid"],
     },
-    {
-        "label": "grid / multi_agent_grid2",
-        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid2.json",
-        "agent_config": AGENT_CONFIGS["grid"],
-    },
+    # {
+    #     "label": "grid / multi_agent_grid2",
+    #     "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid2.json",
+    #     "agent_config": AGENT_CONFIGS["grid"],
+    # },
 ]
-DEFAULT_EPISODES = 4000
-DEFAULT_MOVING_AVERAGE_WINDOW = 100
-DEFAULT_TAIL_WINDOW = 100
+DEFAULT_EPISODES = 10
+DEFAULT_MOVING_AVERAGE_WINDOW = 2
+DEFAULT_TAIL_WINDOW = 2
 DEFAULT_OUTPUT_PREFIX = "intersection_env_comparison"
 
 EPISODE_SCORE_PATTERN = re.compile(
@@ -233,10 +237,16 @@ def run_environment(label: str, env_config: Path, agent_config: Path, episodes: 
 
     print(f"\nRunning {label}")
     print(" ".join(command))
-    base_output_dir = SCRIPT_DIR / "out" / "IntersectionEnv" / "DQNAgent"
-    previous_runs = {path for path in base_output_dir.iterdir() if path.is_dir()} if base_output_dir.exists() else set()
+    base_out = SCRIPT_DIR / "out"
+    base_out.mkdir(parents=True, exist_ok=True)
+    previous_run_dirs = {p for p in base_out.rglob("*") if p.is_dir()}
     subprocess.run(command, cwd=SCRIPT_DIR, check=True)
-    return find_latest_run_directory(base_output_dir, previous_runs)
+    new_dirs = [p for p in base_out.rglob("*") if p.is_dir() and p not in previous_run_dirs]
+    dirs_with_logs = [p for p in new_dirs if list(p.glob("logging*.log"))]
+    candidates = dirs_with_logs or new_dirs
+    if not candidates:
+        raise FileNotFoundError(f"No new run directory found under {base_out} after running {label}")
+    return max(candidates, key=lambda p: p.stat().st_mtime)
 
 
 def collect_run_data(
@@ -271,33 +281,20 @@ def collect_run_data(
 
 
 def render_additional_graphs(
-    run_directories: list[Path],
-    run_labels: list[str],
+    collected_runs: list[RunData],
     output_prefix: str,
     window: int,
     tail_window: int,
 ) -> Path:
     graph_output_dir = SCRIPT_DIR / f"{output_prefix}_graphs"
+    graph_output_dir.mkdir(parents=True, exist_ok=True)
     helper_window = max(window * 2, tail_window)
-    command = [
-        sys.executable,
-        str(PLOT_MORE_GRAPHS_SCRIPT),
-        *[str(path) for path in run_directories],
-        "--labels",
-        *run_labels,
-        "--window",
-        str(window),
-        "--window2",
-        str(helper_window),
-        "--std-window",
-        str(tail_window),
-        "--out-dir",
-        str(graph_output_dir),
-    ]
+    runs = [{"label": rd.label, "episodes": rd.episodes, "rewards": rd.rewards} for rd in collected_runs]
 
     print("\nRendering comparison graphs")
-    print(" ".join(command))
-    subprocess.run(command, cwd=SCRIPT_DIR, check=True)
+    graph_reward_curve(runs, graph_output_dir, window, helper_window)
+    graph_histogram(runs, graph_output_dir)
+    graph_stability(runs, graph_output_dir, tail_window)
     return graph_output_dir
 
 
@@ -408,10 +405,8 @@ def main() -> None:
 
     summary_output = SCRIPT_DIR / f"{args.output_prefix}_summary.png"
     json_output = SCRIPT_DIR / f"{args.output_prefix}_summary.json"
-    graph_labels = [f"{run.agent_config.stem}-{run.env_config.stem}" for run in collected_runs]
     graph_output_dir = render_additional_graphs(
-        [run.run_directory for run in collected_runs],
-        graph_labels,
+        collected_runs,
         args.output_prefix,
         args.window,
         args.tail_window,

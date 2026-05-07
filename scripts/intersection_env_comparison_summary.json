@@ -1,0 +1,38 @@
+{
+  "baseline / multi_agent1": {
+    "agent_config": "/mnt/shared/sola/psis/psis-gejk/scripts/configs/IntersectionEnv/agents/DQNAgent/baseline.json",
+    "best_episode_reward": 4.0,
+    "env_config": "/mnt/shared/sola/psis/psis-gejk/scripts/configs/IntersectionEnv/env_multi_agent1.json",
+    "episodes": 10,
+    "log_file": "/mnt/shared/sola/psis/psis-gejk/scripts/out/MultiAgentIntersectionEnv/DQNAgent/baseline_20260507-180915_593174/logging.140348178214096.593174.log",
+    "overall_mean": 0.72,
+    "overall_std": 1.8524578267804102,
+    "run_directory": "/mnt/shared/sola/psis/psis-gejk/scripts/out/MultiAgentIntersectionEnv/DQNAgent/baseline_20260507-180915_593174",
+    "tail_mean": -0.5,
+    "tail_std": 0.30000000000000004
+  },
+  "ego / multi_agent1": {
+    "agent_config": "/mnt/shared/sola/psis/psis-gejk/scripts/configs/IntersectionEnv/agents/DQNAgent/ego_attention_2h.json",
+    "best_episode_reward": 1.5,
+    "env_config": "/mnt/shared/sola/psis/psis-gejk/scripts/configs/IntersectionEnv/env_multi_agent1.json",
+    "episodes": 10,
+    "log_file": "/mnt/shared/sola/psis/psis-gejk/scripts/out/MultiAgentIntersectionEnv/DQNAgent/ego_attention_2h_20260507-180923_593682/logging.140652155367824.593682.log",
+    "overall_mean": 0.10999999999999999,
+    "overall_std": 0.7286288492778749,
+    "run_directory": "/mnt/shared/sola/psis/psis-gejk/scripts/out/MultiAgentIntersectionEnv/DQNAgent/ego_attention_2h_20260507-180923_593682",
+    "tail_mean": -0.15,
+    "tail_std": 0.35
+  },
+  "grid / multi_agent_grid1": {
+    "agent_config": "/mnt/shared/sola/psis/psis-gejk/scripts/configs/IntersectionEnv/agents/DQNAgent/grid_convnet.json",
+    "best_episode_reward": 1.5,
+    "env_config": "/mnt/shared/sola/psis/psis-gejk/scripts/configs/IntersectionEnv/env_multi_agent_grid1.json",
+    "episodes": 10,
+    "log_file": "/mnt/shared/sola/psis/psis-gejk/scripts/out/MultiAgentIntersectionEnv/DQNAgent/grid_convnet_20260507-180931_593968/logging.139908927907536.593968.log",
+    "overall_mean": 0.039999999999999994,
+    "overall_std": 0.9901515035589251,
+    "run_directory": "/mnt/shared/sola/psis/psis-gejk/scripts/out/MultiAgentIntersectionEnv/DQNAgent/grid_convnet_20260507-180931_593968",
+    "tail_mean": 0.7,
+    "tail_std": 0.49999999999999994
+  }
+}
