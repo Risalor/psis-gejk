@@ -74,7 +74,7 @@ RUNS = [
         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid.json",
         "agent_config": AGENT_CONFIGS["grid"],
     },
-    #KRIS
+    #GAL
     {
         "label": "baseline / multi_agent1",
         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent1.json",
@@ -100,7 +100,7 @@ RUNS = [
         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid1.json",
         "agent_config": AGENT_CONFIGS["grid"],
     },
-    #GAL
+    #KRIS
     {
         "label": "baseline / multi_agent2",
         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent2.json",
