@@ -2,9 +2,10 @@
 """Run and compare the IntersectionEnv variants listed in the prompt.
 
 The script executes each environment configuration with the matching DQN agent
-config, then parses the generated logging files to build comparison plots:
-- a moving-average reward trend for all runs
-- a summary bar chart with overall and tail-episode performance
+config, then parses the generated logging files to build comparison plots. The
+main multi-run graphs are rendered through ``plot_more_graphs.py`` and the
+script also writes a summary bar chart with overall and tail-episode
+performance.
 
 Outputs are written in the scripts directory.
 """
@@ -25,50 +26,78 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 EXPERIMENTS_SCRIPT = SCRIPT_DIR / "experiments.py"
+PLOT_MORE_GRAPHS_SCRIPT = SCRIPT_DIR / "plot_more_graphs.py"
 AGENT_CONFIGS = {
     "baseline": SCRIPT_DIR / "configs/IntersectionEnv/agents/DQNAgent/baseline.json",
-    "ego": SCRIPT_DIR / "configs/IntersectionEnv/agents/DQNAgent/ego_attention.json",
-    "grid": SCRIPT_DIR / "configs/IntersectionEnv/agents/DQNAgent/grid.json",
+    "ego": SCRIPT_DIR / "configs/IntersectionEnv/agents/DQNAgent/ego_attention_2h.json",
+    "grid": SCRIPT_DIR / "configs/IntersectionEnv/agents/DQNAgent/grid_convnet.json",
 }
 
 RUNS = [
     {
-        "label": "baseline / multi_model",
-        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_model.json",
+        "label": "baseline / env",
+        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env.json",
         "agent_config": AGENT_CONFIGS["baseline"],
     },
-    {
-        "label": "ego / multi_agent",
-        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent.json",
-        "agent_config": AGENT_CONFIGS["ego"],
-    },
-    {
-        "label": "ego / multi_agent1",
-        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent1.json",
-        "agent_config": AGENT_CONFIGS["ego"],
-    },
-    {
-        "label": "ego / multi_agent2",
-        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent2.json",
-        "agent_config": AGENT_CONFIGS["ego"],
-    },
-    {
-        "label": "grid / multi_agent_grid",
-        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid.json",
+   {
+         "label": "ego / env",
+         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env.json",
+         "agent_config": AGENT_CONFIGS["ego"],
+     },
+     {
+        "label": "grid / gridenv",
+        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_grid.json",
         "agent_config": AGENT_CONFIGS["grid"],
     },
-    {
-        "label": "grid / multi_agent_grid1",
-        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid1.json",
-        "agent_config": AGENT_CONFIGS["grid"],
-    },
-    {
-        "label": "grid / multi_agent_grid2",
-        "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid2.json",
-        "agent_config": AGENT_CONFIGS["grid"],
-    },
+#     {
+#         "label": "baseline / agentenv0",
+#         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_agent0.json",
+#         "agent_config": AGENT_CONFIGS["baseline"],
+#     },
+#     {
+#         "label": "baseline / agentenv1",
+#         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_agent1.json",
+#         "agent_config": AGENT_CONFIGS["baseline"],
+#     },
+#     {
+#         "label": "baseline / agentenv2",
+#         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_agent2.json",
+#         "agent_config": AGENT_CONFIGS["baseline"],
+#     },
+    
+#     {
+#         "label": "ego / agentenv",
+#         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent.json",
+#         "agent_config": AGENT_CONFIGS["ego"],
+#     },
+#     {
+#         "label": "ego / agentenv1",
+#         "env_config": SCRIPT_DIR /"configs/IntersectionEnv/env_multi_agent1.json", 
+#         "agent_config": AGENT_CONFIGS["ego"],
+#     },
+#     {
+#         "label": "ego / agentenv2",
+#         "env_config": SCRIPT_DIR /"configs/IntersectionEnv/env_multi_agent2.json", 
+#         "agent_config": AGENT_CONFIGS["ego"],
+#     },
+#     {
+#         "label": "grid / agentgrid",
+#         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid.json",
+#         "agent_config": AGENT_CONFIGS["grid"],
+#     },
+#     {
+#         "label": "grid / agentgrid1",
+#         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid1.json",
+#         "agent_config": AGENT_CONFIGS["grid"],
+#     },
+#     {
+#         "label": "grid / agentgrid2",
+#         "env_config": SCRIPT_DIR / "configs/IntersectionEnv/env_multi_agent_grid2.json",
+#         "agent_config": AGENT_CONFIGS["grid"],
+#     }, 
 ]
 
 DEFAULT_EPISODES = 4000
@@ -129,7 +158,7 @@ def validate_inputs(episodes: int, window: int, tail_window: int) -> None:
 
 def find_latest_run_directory(base_directory: Path, previous_runs: set[Path]) -> Path:
     run_directories = sorted(
-        [path for path in base_directory.glob("run_*") if path.is_dir()],
+        [path for path in base_directory.iterdir() if path.is_dir()],
         key=lambda path: path.stat().st_mtime,
     )
     new_runs = [path for path in run_directories if path not in previous_runs]
@@ -242,19 +271,32 @@ def collect_run_data(
     )
 
 
-def plot_reward_trends(runs: list[RunData], output_path: Path, window: int) -> None:
-    figure, axis = plt.subplots(figsize=(13.5, 6.5))
-    for run in runs:
-        axis.plot(run.average_episodes, run.average_rewards, linewidth=2.0, label=run.label)
+def render_additional_graphs(
+    run_directories: list[Path],
+    output_prefix: str,
+    window: int,
+    tail_window: int,
+) -> Path:
+    graph_output_dir = SCRIPT_DIR / f"{output_prefix}_graphs"
+    helper_window = max(window * 2, tail_window)
+    command = [
+        sys.executable,
+        str(PLOT_MORE_GRAPHS_SCRIPT),
+        *[str(path) for path in run_directories],
+        "--window",
+        str(window),
+        "--window2",
+        str(helper_window),
+        "--std-window",
+        str(tail_window),
+        "--out-dir",
+        str(graph_output_dir),
+    ]
 
-    axis.set_title(f"IntersectionEnv comparison - {window}-episode moving average")
-    axis.set_xlabel("Episode")
-    axis.set_ylabel("Reward")
-    axis.grid(alpha=0.25)
-    axis.legend(fontsize=8, ncol=2)
-    figure.tight_layout()
-    figure.savefig(output_path, dpi=180)
-    plt.close(figure)
+    print("\nRendering comparison graphs")
+    print(" ".join(command))
+    subprocess.run(command, cwd=SCRIPT_DIR, check=True)
+    return graph_output_dir
 
 
 def plot_summary_bars(runs: list[RunData], output_path: Path, tail_window: int) -> None:
@@ -362,15 +404,19 @@ def main() -> None:
                 )
             )
 
-    trend_output = SCRIPT_DIR / f"{args.output_prefix}_trends.png"
     summary_output = SCRIPT_DIR / f"{args.output_prefix}_summary.png"
     json_output = SCRIPT_DIR / f"{args.output_prefix}_summary.json"
+    graph_output_dir = render_additional_graphs(
+        [run.run_directory for run in collected_runs],
+        args.output_prefix,
+        args.window,
+        args.tail_window,
+    )
 
-    plot_reward_trends(collected_runs, trend_output, args.window)
     plot_summary_bars(collected_runs, summary_output, args.tail_window)
     save_summary_json(collected_runs, json_output)
 
-    print(f"\nSaved trend figure to: {trend_output}")
+    print(f"\nSaved comparison graphs to: {graph_output_dir}")
     print(f"Saved summary figure to: {summary_output}")
     print(f"Saved metrics summary to: {json_output}")
 
