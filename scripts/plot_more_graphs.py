@@ -58,6 +58,18 @@ def load_runs(paths: list[Path]):
     return runs
 
 
+def load_runs_with_labels(paths: list[Path], labels: list[str] | None):
+    """Load all runs and optionally override the display labels."""
+    runs = load_runs(paths)
+    if labels is None:
+        return runs
+    if len(labels) != len(runs):
+        raise ValueError(f"Expected {len(runs)} labels, got {len(labels)}")
+    for run, label in zip(runs, labels):
+        run["label"] = label
+    return runs
+
+
 
 def graph_reward_curve(runs, out_dir: Path, window1: int, window2: int):
     """Moving averages + linear trend lines for all runs."""
@@ -70,7 +82,7 @@ def graph_reward_curve(runs, out_dir: Path, window1: int, window2: int):
 
         if len(rw) >= window1:
             line, = ax.plot(ep[window1 - 1:], moving_average(rw, window1),
-                            lw=1.8, label=f"{label} ({window1}-ep MA)")
+                            lw=1.8, label=f"{label} (MA {window1})")
             color = line.get_color()
         else:
             line, = ax.plot(ep, rw, lw=1.5, label=label)
@@ -79,20 +91,20 @@ def graph_reward_curve(runs, out_dir: Path, window1: int, window2: int):
         if len(rw) >= window2:
             ax.plot(ep[window2 - 1:], moving_average(rw, window2),
                     lw=2.5, ls="-", alpha=0.6, color=color,
-                    label=f"{label} ({window2}-ep MA)")
+                    label=f"{label} (MA {window2})")
 
         # trend line
         slope, intercept = np.polyfit(ep.astype(float), rw, 1)
         ax.plot(ep, slope * ep + intercept,
                 lw=1.2, ls="--", alpha=0.75, color=color,
-                label=f"{label} trend ({slope:+.4f}/ep)")
+                label=f"{label} (trendline)")
 
     ax.set_title("Reward Curve — Moving Averages & Trend")
     ax.set_xlabel("Episode")
     ax.set_ylabel("Reward")
-    ax.legend(fontsize=7)
+    ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5), fontsize=7, borderaxespad=0.0)
     ax.grid(alpha=0.3)
-    fig.tight_layout()
+    fig.tight_layout(rect=(0.0, 0.0, 0.8, 1.0))
     out = out_dir / "01_reward_curve.png"
     fig.savefig(out, dpi=150)
     plt.close(fig)
@@ -109,9 +121,9 @@ def graph_histogram(runs, out_dir: Path):
     ax.set_title("Score Distribution")
     ax.set_xlabel("Score")
     ax.set_ylabel("Count")
-    ax.legend(fontsize=8)
+    ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5), fontsize=8, borderaxespad=0.0)
     ax.grid(alpha=0.3, axis="y")
-    fig.tight_layout()
+    fig.tight_layout(rect=(0.0, 0.0, 0.8, 1.0))
     out = out_dir / "02_histogram.png"
     fig.savefig(out, dpi=150)
     plt.close(fig)
@@ -133,9 +145,9 @@ def graph_stability(runs, out_dir: Path, std_window: int):
     ax.set_title(f"Rolling Std Dev ({std_window}-ep) — Lower = More Stable")
     ax.set_xlabel("Episode")
     ax.set_ylabel("Std Dev of Score")
-    ax.legend(fontsize=8)
+    ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5), fontsize=8, borderaxespad=0.0)
     ax.grid(alpha=0.3)
-    fig.tight_layout()
+    fig.tight_layout(rect=(0.0, 0.0, 0.8, 1.0))
     out = out_dir / "03_stability.png"
     fig.savefig(out, dpi=150)
     plt.close(fig)
@@ -149,6 +161,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "paths", nargs="+", type=Path,
         help="One or more log files or folders containing logging*.log files.",
+    )
+    p.add_argument(
+        "--labels", nargs="*", default=None,
+        help="Optional display labels for the runs, in the same order as the paths.",
     )
     p.add_argument(
         "--window", type=int, default=50,
@@ -174,7 +190,7 @@ def main():
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
-    runs = load_runs(args.paths)
+    runs = load_runs_with_labels(args.paths, args.labels)
 
     print(":o make graph :0")
     graph_reward_curve(runs, args.out_dir, args.window, args.window2)

@@ -12,7 +12,7 @@ _build
 
 # Editor files
 .idea
-
+scripts/out/
 # Test files
 .pytest_cache
 .cache
